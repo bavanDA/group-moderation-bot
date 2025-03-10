@@ -24,15 +24,9 @@ A Telegram bot that monitors messages in groups for inappropriate content, issue
 git clone https://github.com/bavanDA/Telegram-moderator.git
 cd telegram-moderation-bot
 ```
+2. Change `.env.example` file to `env`
 
-2. Install dependencies:
-```bash
-python m -env requirenment.t
-```
-
-3. Change `.env.example` file to `env`
-
-4. Start the bot:
+3. Start the bot:
 ```bash
 python -m venv env
 pip install -r requirements.txt
