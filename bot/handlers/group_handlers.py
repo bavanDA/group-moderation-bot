@@ -3,7 +3,7 @@ from pyrogram.types import ChatPermissions
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
 from bot.config import config
-from bot.database import get_all_filtered_words, add_warning, get_user_warning_count
+from bot.database import get_all_filtered_words, add_warning
 from datetime import datetime, timedelta
 import re
 from bot.utils.locale_manager import LocaleKeys
@@ -22,7 +22,7 @@ def register_group_handlers(app, locale):
 
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(
-                "Remove Warning",
+                locale.get(LocaleKeys.remove_warning),
                 callback_data=f"remove_warn_{user['id']}_{user['chat_id']}"
             )]
         ])
@@ -95,7 +95,6 @@ def register_group_handlers(app, locale):
                     print(f"Could not delete message: {e}")
 
                 await report_admins(client, user)
-                # Handle the appropriate action based on warning count
                 if action == "warning":
                     await message.reply_text(
                         f"⚠️ {locale.get(LocaleKeys.warning)} #{warning_count}: {display_name} {locale.get(LocaleKeys.warning_msg)} "
@@ -103,8 +102,6 @@ def register_group_handlers(app, locale):
 
                 elif action.startswith("mute"):
 
-                    # Get mute duration
-                    duration = 3 * 60 * 60
                     duration_text = locale.get(LocaleKeys.h3_mute) if "3h" in action else locale.get(
                         LocaleKeys.permanent_mute)
 

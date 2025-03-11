@@ -27,9 +27,6 @@ def register_admin_handlers(app, locale):
         locale.set_language(lang)
         await message.reply_text(locale.get(LocaleKeys.lang_changed))
 
-    @app.on_message(filters.command("help"))
-    async def send_help(client, message):
-        await message.reply_text(locale.get("help"))
 
     @app.on_message(filters.private & filters.text & (filters.command("start") | filters.command("settings")))
     async def handle_start(client, message):

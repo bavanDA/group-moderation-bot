@@ -40,7 +40,9 @@ class LocaleKeys:
     report_filtered_word = "report_filtered_word"
     report_warning_count = "report_warning_count"
     report_punishment = "report_punishment"
-    user= "user"
+    remove_warning = "remove_warning"
+
+    user = "user"
     bot_not_admin = "bot_not_admin"
 
 

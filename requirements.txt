@@ -2,3 +2,4 @@ pyrogram>=2.0.0
 TgCrypto
 python-dotenv
 sqlalchemy
+pyyaml

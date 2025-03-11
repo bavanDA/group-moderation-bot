@@ -109,8 +109,6 @@ def get_all_filtered_words():
     finally:
         session.close()
 
-# User and warning functions
-
 
 def get_or_create_user(user_id, username=None, first_name=None):
     session = get_session()
@@ -131,18 +129,15 @@ def add_warning(user_id, word, chat_id, username=None, first_name=None):
     try:
         user = get_or_create_user(user_id, username, first_name)
 
-        # Count existing warnings
         warning_count = session.query(
-            Warning).filter_by(user_id=user_id).count()
+            Warning).filter_by(user_id=user_id,chat_id=chat_id).count()
 
-        # Determine action based on warning count
-        warning_count += 1  # This will be the new warning
+        warning_count += 1  
         if warning_count in config.PENALTIES:
             action = config.PENALTIES[warning_count]
         else:
             action = "mute_permanent"
 
-        # Create warning record
         warning = Warning(
             user_id=user_id,
             word=word,
@@ -177,9 +172,3 @@ def remove_user_warning(user_id):
         session.close()
 
 
-def get_user_warning_count(user_id):
-    session = get_session()
-    try:
-        return session.query(Warning).filter_by(user_id=user_id).count()
-    finally:
-        session.close()

@@ -35,7 +35,7 @@ report_user_id: "User ID:"
 report_filtered_word: "Banned word:"
 report_warning_count: "Number of warnings:"
 report_punishment: "Punishment:"
-
+remove_warning: "Remove Warning"
 
 user: "user"
 bot_not_admin: "⚠️ I don't have permission to restrict users. Please make me an admin with appropriate rights."

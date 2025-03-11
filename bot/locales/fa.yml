@@ -36,5 +36,8 @@ report_user_id: "یوزرآیدی:"
 report_filtered_word: "کلمه ممنوعه:"
 report_warning_count: "تعداد هشدارها:"
 report_punishment: "مجازات:"
+remove_warning: "حذف اخطار"
+
+
 bot_not_admin: "⚠️دسترسی ندارم. لطفا من رو ادمین کنید!"
 "user": "کاربر"

@@ -37,6 +37,28 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Docker Setup
+
+You can also run the bot using Docker. Follow these steps:
+
+1. **Pull the Docker image**:
+```bash
+docker pull spoiler2400/group-moderation-bot:0.1.0
+```
+
+2. **Create a `.env` file** with the following environment variables:
+```bash
+API_ID=YOUR_API_ID
+API_HASH=YOUR_API_HASH
+BOT_TOKEN=YOUR_BOT_TOKEN
+ADMIN_IDS=AdminID1,AdminID2
+```
+
+3. **Run the Docker container**:
+```bash
+docker run -d --env-file .env spoiler2400/group-moderation-bot:0.1.0
+
+```
 
 ## License
 
