@@ -3,83 +3,127 @@ from pyrogram.types import CallbackQuery
 from bot.config import config
 from bot.utils.keyboards import get_admin_keyboard
 from bot.database import add_filtered_word, remove_filtered_word, get_all_filtered_words
+from bot.utils.locale_manager import LocaleKeys
+from bot.database import remove_user_warning
+from pyrogram.types import ChatPermissions
 
 # Define conversation states
 WAITING_FOR_WORD_TO_ADD = {}
 WAITING_FOR_WORD_TO_REMOVE = {}
 
-def register_admin_handlers(app):
-    @app.on_message(filters.private & filters.text & (filters.command("start") | filters.regex("^hi$")))
+
+def register_admin_handlers(app, locale):
+
+    @app.on_message(filters.command("lang"))
+    async def change_language(client, message):
+        user_id = message.from_user.id
+
+        if user_id not in config.ADMIN_IDS:
+            await message.reply_text(locale.get(LocaleKeys.unauthorized))
+            return
+        
+        # Toggle between English and Spanish
+        lang = "en" if locale.lang == "fa" else "fa"
+        locale.set_language(lang)
+        await message.reply_text(locale.get(LocaleKeys.lang_changed))
+
+    @app.on_message(filters.command("help"))
+    async def send_help(client, message):
+        await message.reply_text(locale.get("help"))
+
+    @app.on_message(filters.private & filters.text & (filters.command("start") | filters.command("settings")))
     async def handle_start(client, message):
         user_id = message.from_user.id
-        
+
         if user_id in config.ADMIN_IDS:
             await message.reply_text(
-                "Hi, welcome to bot",
-                reply_markup=get_admin_keyboard()
+                locale.get(LocaleKeys.welcome),
+                reply_markup=get_admin_keyboard(locale)
             )
         else:
-            await message.reply_text("You're not authorized to use this bot.")
+            await message.reply_text(locale.get(LocaleKeys.unauthorized))
+
+    @app.on_callback_query(filters.regex(r"^remove_warn_(\d+)_-(\d+)"))
+    async def handle_remove_warning(client, callback_query):
+        user_id = int(callback_query.matches[0].group(1))
+        chat_id = -1*int(callback_query.matches[0].group(2))
+
+        try:
+            remove_user_warning(user_id)
+
+            permissions = ChatPermissions(
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True
+            )
+            await client.restrict_chat_member(chat_id, user_id, permissions)
+
+            await callback_query.message.delete()
+
+            await callback_query.answer("Warning removed and user unmuted successfully")
+        except Exception as e:
+            await callback_query.answer(f"Error: {str(e)}", show_alert=True)
 
     @app.on_callback_query()
     async def handle_callback(client, callback_query: CallbackQuery):
         user_id = callback_query.from_user.id
-        
+
         if user_id not in config.ADMIN_IDS:
-            await callback_query.answer("You're not authorized to use this function.", show_alert=True)
+            await callback_query.answer(locale.get(LocaleKeys.unauthorized), show_alert=True)
             return
-        
+
         if callback_query.data == "add_words":
             WAITING_FOR_WORD_TO_ADD[user_id] = True
-            await callback_query.message.reply_text("Please send the word you want to add:")
+            await callback_query.message.reply_text(locale.get(LocaleKeys.prompt_add_word))
             await callback_query.answer()
-            
+
         elif callback_query.data == "remove_words":
             words = get_all_filtered_words()
             if not words:
-                await callback_query.message.reply_text("The word list is empty.")
+                await callback_query.message.reply_text(locale.get(LocaleKeys.empty_word_list))
                 await callback_query.answer()
                 return
-                
+
             WAITING_FOR_WORD_TO_REMOVE[user_id] = True
-            await callback_query.message.reply_text("Please send the word you want to remove:")
+            await callback_query.message.reply_text(locale.get(LocaleKeys.prompt_remove_word))
             await callback_query.answer()
-            
+
         elif callback_query.data == "show_words":
             words = get_all_filtered_words()
             if words:
                 word_list = "\n".join([f"• {word}" for word in words])
-                await callback_query.message.reply_text(f"List of filtered words:\n{word_list}")
+                await callback_query.message.reply_text(f"{locale.get(LocaleKeys.filtered_words_list)}\n{word_list}")
             else:
-                await callback_query.message.reply_text("The word list is empty.")
+                await callback_query.message.reply_text(locale.get(LocaleKeys.empty_word_list))
             await callback_query.answer()
-        
+
         else:
-            await callback_query.answer("Unknown option")
+            await callback_query.answer(locale.get(LocaleKeys.unknown_option))
 
     @app.on_message(filters.private & filters.text)
     async def handle_messages(client, message):
         user_id = message.from_user.id
-        
+
         if user_id not in config.ADMIN_IDS:
             return
-        
+
         if user_id in WAITING_FOR_WORD_TO_ADD:
             del WAITING_FOR_WORD_TO_ADD[user_id]
             word = message.text.strip().lower()
             success, msg = add_filtered_word(word)
-            
+
             await message.reply_text(
-                f"{msg}",
-                reply_markup=get_admin_keyboard()
+                locale.get(msg),
+                reply_markup=get_admin_keyboard(locale)
             )
-        
+
         elif user_id in WAITING_FOR_WORD_TO_REMOVE:
             del WAITING_FOR_WORD_TO_REMOVE[user_id]
             word = message.text.strip().lower()
             success, msg = remove_filtered_word(word)
-            
+
             await message.reply_text(
-                f"{msg}",
-                reply_markup=get_admin_keyboard()
+                locale.get(msg),
+                reply_markup=get_admin_keyboard(locale)
             )

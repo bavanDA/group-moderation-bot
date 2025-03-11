@@ -5,24 +5,40 @@ from bot.config import config
 from bot.database import get_all_filtered_words, add_warning, get_user_warning_count
 from datetime import datetime, timedelta
 import re
+from bot.utils.locale_manager import LocaleKeys
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def register_group_handlers(app):
+def register_group_handlers(app, locale):
+
+    async def report_admins(client, user):
+        warning_msg = f"Warning Report:\nUser: {user['name']}\nWarning Count: {user['warning_count']}\nFiltered Word: {user['filtered_word']}"
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(
+                "Remove Warning",
+                callback_data=f"remove_warn_{user['id']}_{user['chat_id']}"
+            )]
+        ])
+
+        for admin_id in config.ADMIN_IDS:
+            await client.send_message(
+                admin_id,
+                warning_msg,
+                reply_markup=keyboard
+            )
+
     @app.on_message(filters.group & filters.text)
     async def monitor_group_messages(client, message):
         filtered_words = get_all_filtered_words()
         if not filtered_words:
             return
 
-        # Check if the message contains any filtered words
         message_text = message.text.lower()
 
-        # Split text into words and clean them from punctuation
         words_in_message = re.findall(r'\b\w+\b', message_text)
 
         found_word = None
 
-        # Check if any filtered word matches exactly with any word in the message
         for word in filtered_words:
             word_lower = word.lower()
             if word_lower in words_in_message:
@@ -30,7 +46,6 @@ def register_group_handlers(app):
                 break
 
         if found_word:
-            # Skip if the user is an admin in the chat
             try:
                 chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
                 if chat_member.status in ["creator", "administrator"]:
@@ -38,6 +53,7 @@ def register_group_handlers(app):
             except Exception as e:
                 print(f"Error checking admin status: {e}")
 
+            user = {}
             user_id = message.from_user.id
             chat_id = message.chat.id
             username = message.from_user.username
@@ -47,7 +63,6 @@ def register_group_handlers(app):
             if not display_name:
                 display_name = f"User {user_id}"
 
-            # Add warning and get count
             try:
                 warning_count, action = add_warning(
                     user_id,
@@ -57,7 +72,13 @@ def register_group_handlers(app):
                     first_name
                 )
 
-                # Try to delete the message
+                user['id'] = user_id
+                user['chat_id'] = chat_id
+                user['name'] = first_name
+                user['username'] = username
+                user['filtered_word'] = found_word
+                user['warning_count'] = warning_count
+                user['action'] = action
                 try:
                     await message.delete()
                 except Exception as e:
@@ -66,15 +87,16 @@ def register_group_handlers(app):
                 # Handle the appropriate action based on warning count
                 if action == "warning":
                     await message.reply_text(
-                        f"⚠️ Warning #{warning_count}: {display_name} used a filtered word. "
-                        f"Please be mindful of your language."
+                        f"⚠️ {locale.get(LocaleKeys.warning)} #{warning_count}: {display_name} {locale.get(LocaleKeys.warning_msg)} "
                     )
+                    await report_admins(client, user)
 
                 elif action.startswith("mute"):
 
                     # Get mute duration
                     duration = 3 * 60 * 60
-                    duration_text = "3 hours" if duration > 0 else "permanently"
+                    duration_text = locale.get(LocaleKeys.h3_mute) if duration > 0 else locale.get(
+                        LocaleKeys.permanent_mute)
 
                     # Restrict user with proper permissions
                     try:
@@ -105,7 +127,7 @@ def register_group_handlers(app):
                         # Send notification
                         await client.send_message(
                             chat_id,
-                            f"🚫 {display_name} has been muted {duration_text} "
+                            f"🚫 {display_name} {duration_text} {locale.get(LocaleKeys.mute_msg)} "
                             f"for using filtered words {warning_count} times."
                         )
 

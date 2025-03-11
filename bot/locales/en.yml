@@ -1,0 +1,28 @@
+welcome: "Hi, welcome to bot"
+unauthorized: "You're not authorized to use this bot."
+prompt_add_word: "Please send the word you want to add:"
+prompt_remove_word: "Please send the word you want to remove:"
+filtered_words_list: "List of filtered words:"
+
+# commands:
+add_words: "add words"
+remove_words: "remove words"
+show_words: "show words"
+unknown_option: "Unknown option"
+
+# responses:
+word_added: "Word added successfully"
+word_exists: "Word already exists"
+word_removed: "Word removed successfully"
+word_not_found: "Word not found"
+empty_word_list: "The word list is empty."
+
+lang_changed : "Language changed successfully"
+
+
+warning: "Warning"
+warning_msg: "used a filtered word"
+3h_mute: "for 3 hours" 
+permanent_mute: "for permanently"
+mute_msg: "has been muted"
+mute_reason: "for using filtered words"
