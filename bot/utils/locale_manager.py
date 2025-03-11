@@ -27,10 +27,21 @@ class LocaleKeys:
 
     warning = "warning"
     warning_msg = "warning_msg"
-    h3_mute = "3h_mute"
+    h3_mute = "h3_mute"
     permanent_mute = "permanent_mute"
     mute_msg = "mute_msg"
     mute_reason = "mute_reason"
+
+    report_start = "report_start"
+
+    report_warning_msg = "report_warning_msg"
+    report_username = "report_username"
+    report_user_id = "report_user_id"
+    report_filtered_word = "report_filtered_word"
+    report_warning_count = "report_warning_count"
+    report_punishment = "report_punishment"
+    user= "user"
+    bot_not_admin = "bot_not_admin"
 
 
 class LocaleManager:
@@ -50,7 +61,6 @@ class LocaleManager:
 
     def get(self, key: str) -> str:
         key_value = getattr(LocaleKeys, key, None)
-        print(key_value)
         if key_value:
             return self.translations.get(key_value, f"[{key_value} not found]")
         return f"[{key} not found]"

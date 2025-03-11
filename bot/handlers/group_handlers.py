@@ -1,5 +1,6 @@
 from pyrogram import filters
 from pyrogram.types import ChatPermissions
+from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
 from bot.config import config
 from bot.database import get_all_filtered_words, add_warning, get_user_warning_count
@@ -12,7 +13,13 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 def register_group_handlers(app, locale):
 
     async def report_admins(client, user):
-        warning_msg = f"Warning Report:\nUser: {user['name']}\nWarning Count: {user['warning_count']}\nFiltered Word: {user['filtered_word']}"
+        warning_msg = f'''{locale.get(LocaleKeys.report_start)} \n {locale.get(LocaleKeys.report_warning_msg)} {user['name']}
+{locale.get(LocaleKeys.report_user_id)} [{user['id']}](https://t.me/@{user['id']})
+{locale.get(LocaleKeys.report_username)} @{user['username']}
+{locale.get(LocaleKeys.report_filtered_word)} {user['filtered_word']}
+{locale.get(LocaleKeys.report_warning_count)} {user['warning_count']}
+{locale.get(LocaleKeys.report_punishment)} {user['action']}'''
+
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(
                 "Remove Warning",
@@ -29,6 +36,15 @@ def register_group_handlers(app, locale):
 
     @app.on_message(filters.group & filters.text)
     async def monitor_group_messages(client, message):
+
+        try:
+            chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+
+            if chat_member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
+                return
+        except Exception as e:
+            print(f"Error checking admin status: {e}")
+
         filtered_words = get_all_filtered_words()
         if not filtered_words:
             return
@@ -46,12 +62,6 @@ def register_group_handlers(app, locale):
                 break
 
         if found_word:
-            try:
-                chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
-                if chat_member.status in ["creator", "administrator"]:
-                    return
-            except Exception as e:
-                print(f"Error checking admin status: {e}")
 
             user = {}
             user_id = message.from_user.id
@@ -84,23 +94,21 @@ def register_group_handlers(app, locale):
                 except Exception as e:
                     print(f"Could not delete message: {e}")
 
+                await report_admins(client, user)
                 # Handle the appropriate action based on warning count
                 if action == "warning":
                     await message.reply_text(
                         f"⚠️ {locale.get(LocaleKeys.warning)} #{warning_count}: {display_name} {locale.get(LocaleKeys.warning_msg)} "
                     )
-                    await report_admins(client, user)
 
                 elif action.startswith("mute"):
 
                     # Get mute duration
                     duration = 3 * 60 * 60
-                    duration_text = locale.get(LocaleKeys.h3_mute) if duration > 0 else locale.get(
+                    duration_text = locale.get(LocaleKeys.h3_mute) if "3h" in action else locale.get(
                         LocaleKeys.permanent_mute)
 
-                    # Restrict user with proper permissions
                     try:
-                        # Define restricted permissions (no permissions)
                         mute_permissions = ChatPermissions(
                             can_send_messages=False,
                             can_send_media_messages=False,
@@ -109,7 +117,6 @@ def register_group_handlers(app, locale):
                         )
 
                         if (action == "mute_3h"):
-                            # Restrict user
                             await client.restrict_chat_member(
                                 chat_id=chat_id,
                                 user_id=user_id,
@@ -124,17 +131,15 @@ def register_group_handlers(app, locale):
                                 permissions=mute_permissions
                             )
 
-                        # Send notification
                         await client.send_message(
                             chat_id,
-                            f"🚫 {display_name} {duration_text} {locale.get(LocaleKeys.mute_msg)} "
-                            f"for using filtered words {warning_count} times."
+                            f"🚫{locale.get(LocaleKeys.user)} @{display_name} {locale.get(LocaleKeys.mute_reason)} {duration_text} {locale.get(LocaleKeys.mute_msg)} \n "
                         )
 
                     except ChatAdminRequired:
                         await client.send_message(
                             chat_id,
-                            "⚠️ I don't have permission to restrict users. Please make me an admin with appropriate rights."
+                            locale.get(LocaleKeys.bot_not_admin)
                         )
                     except UserAdminInvalid:
                         await client.send_message(

@@ -5,9 +5,9 @@ prompt_remove_word: "Please send the word you want to remove:"
 filtered_words_list: "List of filtered words:"
 
 # commands:
-add_words: "add words"
-remove_words: "remove words"
-show_words: "show words"
+add_words: "➕ add words"
+remove_words: "🗑 remove words"
+show_words: "🗃 show words"
 unknown_option: "Unknown option"
 
 # responses:
@@ -22,7 +22,20 @@ lang_changed : "Language changed successfully"
 
 warning: "Warning"
 warning_msg: "used a filtered word"
-3h_mute: "for 3 hours" 
+h3_mute: "for 3 hours" 
 permanent_mute: "for permanently"
-mute_msg: "has been muted"
+mute_msg: "has been muted.💃"
 mute_reason: "for using filtered words"
+
+# Warnings:
+report_start: "🔔 Notification:"
+report_warning_msg: "⚠️ User violation:"
+report_username: "Username:"
+report_user_id: "User ID:"
+report_filtered_word: "Banned word:"
+report_warning_count: "Number of warnings:"
+report_punishment: "Punishment:"
+
+
+user: "user"
+bot_not_admin: "⚠️ I don't have permission to restrict users. Please make me an admin with appropriate rights."
