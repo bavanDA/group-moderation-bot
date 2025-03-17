@@ -17,6 +17,7 @@ class LocaleKeys:
     unknown_option = "unknown_option"
 
     # Responses
+    word = "word"
     word_added = "word_added"
     word_exists = "word_exists"
     word_removed = "word_removed"
@@ -44,6 +45,12 @@ class LocaleKeys:
 
     user = "user"
     bot_not_admin = "bot_not_admin"
+
+    reset_msg_p1 = "reset_msg_p1"
+    reset_msg_p2 = "reset_msg_p2"
+
+    info_msg_p1 = "info_msg_p1"
+    info_msg_p2 = "info_msg_p2"
 
 
 class LocaleManager:

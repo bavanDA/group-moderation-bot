@@ -21,12 +21,11 @@ def register_admin_handlers(app, locale):
         if user_id not in config.ADMIN_IDS:
             await message.reply_text(locale.get(LocaleKeys.unauthorized))
             return
-        
+
         # Toggle between English and Spanish
         lang = "en" if locale.lang == "fa" else "fa"
         locale.set_language(lang)
         await message.reply_text(locale.get(LocaleKeys.lang_changed))
-
 
     @app.on_message(filters.private & filters.text & (filters.command("start") | filters.command("settings")))
     async def handle_start(client, message):
@@ -46,7 +45,7 @@ def register_admin_handlers(app, locale):
         chat_id = -1*int(callback_query.matches[0].group(2))
 
         try:
-            remove_user_warning(user_id)
+            remove_user_warning(user_id, chat_id=chat_id)
 
             permissions = ChatPermissions(
                 can_send_messages=True,
@@ -107,20 +106,20 @@ def register_admin_handlers(app, locale):
 
         if user_id in WAITING_FOR_WORD_TO_ADD:
             del WAITING_FOR_WORD_TO_ADD[user_id]
-            word = message.text.strip().lower()
-            success, msg = add_filtered_word(word)
+            words = message.text
+            result = add_filtered_word(locale, words)
 
             await message.reply_text(
-                locale.get(msg),
+                result,
                 reply_markup=get_admin_keyboard(locale)
             )
 
         elif user_id in WAITING_FOR_WORD_TO_REMOVE:
             del WAITING_FOR_WORD_TO_REMOVE[user_id]
-            word = message.text.strip().lower()
-            success, msg = remove_filtered_word(word)
+            words = message.text
+            result = remove_filtered_word(locale, words)
 
             await message.reply_text(
-                locale.get(msg),
+                result,
                 reply_markup=get_admin_keyboard(locale)
             )

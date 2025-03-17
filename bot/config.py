@@ -28,4 +28,6 @@ class Config:
         "mute_permanent": 0  # 0 means indefinite
     }
 
+    GROUP_IDS = [-1002241583399]
+
 config = Config()

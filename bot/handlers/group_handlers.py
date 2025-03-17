@@ -3,11 +3,12 @@ from pyrogram.types import ChatPermissions
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
 from bot.config import config
-from bot.database import get_all_filtered_words, add_warning
+from bot.database import get_all_filtered_words, add_warning, remove_all_user_warnings, get_user_warnings_count
 from datetime import datetime, timedelta
 import re
 from bot.utils.locale_manager import LocaleKeys
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.job_queue import schedule_message_deletion
 
 
 def register_group_handlers(app, locale):
@@ -34,16 +35,44 @@ def register_group_handlers(app, locale):
                 reply_markup=keyboard
             )
 
-    @app.on_message(filters.group & filters.text)
-    async def monitor_group_messages(client, message):
+    @app.on_message(filters.command("reset") & filters.group & filters.reply)
+    async def reset_user_warnings(client, message):
+        chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+        chat_id = message.chat.id
+        username = message.from_user.username
+        first_name = message.from_user.first_name
+        display_name = "@" + username if username else first_name
+        if chat_member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
+            return
+
+        replied_user = message.reply_to_message.from_user
+        if not replied_user:
+            return
 
         try:
-            chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+            remove_all_user_warnings(replied_user.id, chat_id)
+            msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p2)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
+            schedule_message_deletion(client, chat_id, msg.id)
 
-            if chat_member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
-                return
         except Exception as e:
-            print(f"Error checking admin status: {e}")
+            msg = await message.reply_text(f"Error resetting warnings: {str(e)}")
+            schedule_message_deletion(client, chat_id, msg.id)
+
+    @app.on_message(filters.command("info") & filters.group)
+    async def get_user_info(client, message):
+        user_id = message.from_user.id
+        chat_id = message.chat.id
+        try:
+            warnings_count = get_user_warnings_count(user_id, chat_id)
+            msg = await message.reply_text(f"{locale.get(LocaleKeys.info_msg_p1)} {warnings_count} {locale.get(LocaleKeys.info_msg_p2)}")
+            schedule_message_deletion(client, chat_id, msg.id)
+
+        except Exception as e:
+            msg = await message.reply_text(f"⚠️ Error getting warnings: {str(e)}")
+            schedule_message_deletion(client, chat_id, msg.id)
+
+    @app.on_message(filters.group & filters.text)
+    async def monitor_group_messages(client, message):
 
         filtered_words = get_all_filtered_words()
         if not filtered_words:
@@ -69,7 +98,11 @@ def register_group_handlers(app, locale):
             username = message.from_user.username
             first_name = message.from_user.first_name
 
-            display_name = username if username else first_name
+            chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+            is_admin = chat_member.status in [
+                ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]
+
+            display_name = "@" + username if username else first_name
             if not display_name:
                 display_name = f"User {user_id}"
 
@@ -89,16 +122,21 @@ def register_group_handlers(app, locale):
                 user['filtered_word'] = found_word
                 user['warning_count'] = warning_count
                 user['action'] = action
+
+                if (is_admin):
+                    user['action'] = "admin"
                 try:
                     await message.delete()
                 except Exception as e:
                     print(f"Could not delete message: {e}")
 
                 await report_admins(client, user)
-                if action == "warning":
-                    await message.reply_text(
+
+                if action == "warning" or is_admin:
+                    msg = await message.reply_text(
                         f"⚠️ {locale.get(LocaleKeys.warning)} #{warning_count}: {display_name} {locale.get(LocaleKeys.warning_msg)} "
                     )
+                    schedule_message_deletion(client, chat_id, msg.id)
 
                 elif action.startswith("mute"):
 
@@ -114,6 +152,7 @@ def register_group_handlers(app, locale):
                         )
 
                         if (action == "mute_3h"):
+
                             await client.restrict_chat_member(
                                 chat_id=chat_id,
                                 user_id=user_id,
@@ -128,10 +167,11 @@ def register_group_handlers(app, locale):
                                 permissions=mute_permissions
                             )
 
-                        await client.send_message(
+                        msg = await client.send_message(
                             chat_id,
-                            f"🚫{locale.get(LocaleKeys.user)} @{display_name} {locale.get(LocaleKeys.mute_reason)} {duration_text} {locale.get(LocaleKeys.mute_msg)} \n "
+                            f"🚫{locale.get(LocaleKeys.user)} {display_name} {locale.get(LocaleKeys.mute_reason)} {duration_text} {locale.get(LocaleKeys.mute_msg)} \n "
                         )
+                        schedule_message_deletion(client, chat_id, msg.id)
 
                     except ChatAdminRequired:
                         await client.send_message(

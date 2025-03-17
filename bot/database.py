@@ -61,21 +61,32 @@ def init_db():
 def get_session():
     return Session()
 
-# Filtered word functions
+
+def word_list_convertor(words):
+    return [word.strip().lower() for word in words.split('\n')]
 
 
-def add_filtered_word(word):
+def add_filtered_word(locale, words):
+
+    result = ""
     session = get_session()
     try:
-        existing_word = session.query(
-            FilteredWord).filter_by(word=word).first()
-        if existing_word:
-            return False, LocaleKeys.word_exists
 
-        new_word = FilteredWord(word=word)
-        session.add(new_word)
+        word_list = word_list_convertor(words)
+        for word in word_list:
+            existing_word = session.query(
+                FilteredWord).filter_by(word=word).first()
+            if existing_word:
+                result += f"{locale.get(LocaleKeys.word)} \"{word}\" {locale.get(LocaleKeys.word_exists)} \n"
+                continue
+            new_word = FilteredWord(word=word)
+            session.add(new_word)
+
+            result += f"{locale.get(LocaleKeys.word)} \"{word}\" {locale.get(LocaleKeys.word_added)} \n"
+
         session.commit()
-        return True, LocaleKeys.word_added
+
+        return result
     except Exception as e:
         session.rollback()
         return False, str(e)
@@ -83,17 +94,24 @@ def add_filtered_word(word):
         session.close()
 
 
-def remove_filtered_word(word):
+def remove_filtered_word(locale, words):
+
+    result = ""
     session = get_session()
     try:
-        existing_word = session.query(
-            FilteredWord).filter_by(word=word).first()
-        if not existing_word:
-            return False, LocaleKeys.word_not_found
+        word_list = word_list_convertor(words)
+        for word in word_list:
 
-        session.delete(existing_word)
+            existing_word = session.query(
+                FilteredWord).filter_by(word=word).first()
+            if not existing_word:
+                result += f"{locale.get(LocaleKeys.word)} \"{word}\" {locale.get(LocaleKeys.word_not_found)} \n"
+
+            session.delete(existing_word)
+            result += f"{locale.get(LocaleKeys.word)}  \"{word}\" {locale.get(LocaleKeys.word_removed)} \n"
+
         session.commit()
-        return True, LocaleKeys.word_removed
+        return result
     except Exception as e:
         session.rollback()
         return False, str(e)
@@ -130,9 +148,9 @@ def add_warning(user_id, word, chat_id, username=None, first_name=None):
         user = get_or_create_user(user_id, username, first_name)
 
         warning_count = session.query(
-            Warning).filter_by(user_id=user_id,chat_id=chat_id).count()
+            Warning).filter_by(user_id=user_id, chat_id=chat_id).count()
 
-        warning_count += 1  
+        warning_count += 1
         if warning_count in config.PENALTIES:
             action = config.PENALTIES[warning_count]
         else:
@@ -156,11 +174,11 @@ def add_warning(user_id, word, chat_id, username=None, first_name=None):
         session.close()
 
 
-def remove_user_warning(user_id):
+def remove_user_warning(user_id,chat_id):
     session = get_session()
     try:
         latest_warning = session.query(Warning).filter_by(
-            user_id=user_id).order_by(Warning.timestamp.desc()).first()
+            user_id=user_id,chat_id=chat_id).order_by(Warning.timestamp.desc()).first()
         if latest_warning:
             session.delete(latest_warning)
             session.commit()
@@ -172,3 +190,28 @@ def remove_user_warning(user_id):
         session.close()
 
 
+def get_user_warnings_count(user_id,chat_id):
+    session = get_session()
+    try:
+        warnings = session.query(Warning).filter_by(user_id=user_id,chat_id=chat_id).all()
+        return len(warnings)
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
+def remove_all_user_warnings(user_id, chat_id):
+    session = get_session()
+    try:
+        warnings = session.query(Warning).filter_by(
+            user_id=user_id, chat_id=chat_id).all()
+        for warning in warnings:
+            session.delete(warning)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()

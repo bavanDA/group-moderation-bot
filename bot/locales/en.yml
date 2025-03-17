@@ -1,7 +1,7 @@
 welcome: "Hi, welcome to bot"
 unauthorized: "You're not authorized to use this bot."
-prompt_add_word: "Please send the word you want to add:"
-prompt_remove_word: "Please send the word you want to remove:"
+prompt_add_word: "Please send the words you want to add in the following format:\n[word 1]\n[word 2]"
+prompt_remove_word: "Please send the words you want to remove in the following format:\n[word 1]\n[word 2]"
 filtered_words_list: "List of filtered words:"
 
 # commands:
@@ -11,10 +11,11 @@ show_words: "🗃 show words"
 unknown_option: "Unknown option"
 
 # responses:
-word_added: "Word added successfully"
-word_exists: "Word already exists"
-word_removed: "Word removed successfully"
-word_not_found: "Word not found"
+word: "The word"
+word_added: "added successfully"
+word_exists: "already exists"
+word_removed: "removed successfully"
+word_not_found: "not found"
 empty_word_list: "The word list is empty."
 
 lang_changed : "Language changed successfully"
@@ -39,3 +40,10 @@ remove_warning: "Remove Warning"
 
 user: "user"
 bot_not_admin: "⚠️ I don't have permission to restrict users. Please make me an admin with appropriate rights."
+
+reset_msg_p1: "All warnings for"
+reset_msg_p2: "have been reset."
+
+
+info_msg_p1: "You have"
+info_msg_p2: "warnings"
