@@ -7,7 +7,6 @@ from bot.utils.locale_manager import LocaleKeys
 from bot.database import remove_user_warning
 from pyrogram.types import ChatPermissions
 
-# Define conversation states
 WAITING_FOR_WORD_TO_ADD = {}
 WAITING_FOR_WORD_TO_REMOVE = {}
 
@@ -22,7 +21,7 @@ def register_admin_handlers(app, locale):
             await message.reply_text(locale.get(LocaleKeys.unauthorized))
             return
 
-        # Toggle between English and Spanish
+        # Toggle between English and Farsi
         lang = "en" if locale.lang == "fa" else "fa"
         locale.set_language(lang)
         await message.reply_text(locale.get(LocaleKeys.lang_changed))

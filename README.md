@@ -32,7 +32,7 @@ cd telegram-moderation-bot
 
 3. Start the bot:
 ```bash
-python -m venv env
+python -m venv env && env\Scripts\activate
 pip install -r requirements.txt
 python main.py
 ```
@@ -43,7 +43,7 @@ You can also run the bot using Docker. Follow these steps:
 
 1. **Pull the Docker image**:
 ```bash
-docker pull spoiler2400/group-moderation-bot:0.1.0
+docker pull spoiler2400/group-moderation-bot:0.2.0
 ```
 
 2. **Create a `.env` file** with the following environment variables:
@@ -56,7 +56,7 @@ ADMIN_IDS=AdminID1,AdminID2
 
 3. **Run the Docker container**:
 ```bash
-docker run -d --env-file .env spoiler2400/group-moderation-bot:0.1.0
+docker run -d --env-file .env spoiler2400/group-moderation-bot:0.2.0
 
 ```
 

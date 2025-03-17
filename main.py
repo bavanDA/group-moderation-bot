@@ -3,19 +3,18 @@ from bot import create_bot
 
 
 async def main():
-    app = create_bot()  # Create bot instance
+    app = create_bot()  
     print("Bot is starting...")
-    await app.start()  # Start the bot (async)
+    await app.start()  
 
-    # Keep the bot running and ensure the event loop is alive
     print("Bot is running...")
     try:
-        await asyncio.Event().wait()  # Keep the bot running
+        await asyncio.Event().wait()  
     except (KeyboardInterrupt, SystemExit):
         print("Bot is stopping...")
     finally:
-        await app.stop()  # Properly stop the bot
+        await app.stop()  
     
 
 if __name__ == "__main__":
-    asyncio.run(main())  # Use asyncio.run to handle the event loop
+    asyncio.run(main())  

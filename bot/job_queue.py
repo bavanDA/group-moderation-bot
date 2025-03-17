@@ -1,11 +1,12 @@
 import asyncio
 from pyrogram import Client
+from bot.config import config
 
 task_list = {}
 
 
 async def delete_message_task(app: Client, chat_id: int, message_id: int):
-    await asyncio.sleep(60)
+    await asyncio.sleep(config.BOT_MSG_TTL)
 
     try:
         await app.delete_messages(chat_id, message_id)

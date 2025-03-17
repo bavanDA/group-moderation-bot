@@ -37,8 +37,10 @@ def register_group_handlers(app, locale):
 
     @app.on_message(filters.command("reset") & filters.group & filters.reply)
     async def reset_user_warnings(client, message):
-        chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
         chat_id = message.chat.id
+
+        chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+
         username = message.from_user.username
         first_name = message.from_user.first_name
         display_name = "@" + username if username else first_name
@@ -51,7 +53,14 @@ def register_group_handlers(app, locale):
 
         try:
             remove_all_user_warnings(replied_user.id, chat_id)
-            msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p2)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
+            permissions = ChatPermissions(
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True
+            )
+            await client.restrict_chat_member(chat_id, replied_user.id, permissions)
+            msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p1)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
             schedule_message_deletion(client, chat_id, msg.id)
 
         except Exception as e:
