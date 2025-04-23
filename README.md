@@ -16,7 +16,9 @@ A Telegram bot that moderates group chats by filtering inappropriate words, issu
    - 🔹 Add words to blacklist  
    - 🔹 Remove words from blacklist  
    - 🔹 View current blacklist  
-   - 🔹 Remove user warnings  
+   - 🔹 View user warnings and remove them
+   - 🔹 Reset user warnings  
+
 ✅ **Environment-based configuration**  
 ✅ **User violation tracking in database**  
 
@@ -41,23 +43,12 @@ python main.py
 
 You can also run the bot using Docker. Follow these steps:
 
-1. **Pull the Docker image**:
-```bash
-docker pull spoiler2400/group-moderation-bot:0.2.0
-```
 
-2. **Create a `.env` file** with the following environment variables:
-```bash
-API_ID=YOUR_API_ID
-API_HASH=YOUR_API_HASH
-BOT_TOKEN=YOUR_BOT_TOKEN
-ADMIN_IDS=AdminID1,AdminID2
-```
+1. Rename `env.example` to `.env` and update the environment variables as needed
 
-3. **Run the Docker container**:
+2. Build and run the Docker containers using Docker Compose:
 ```bash
-docker run -d --env-file .env spoiler2400/group-moderation-bot:0.2.0
-
+docker compose up --build -d
 ```
 
 ## License
