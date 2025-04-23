@@ -39,20 +39,33 @@ def register_group_handlers(app, locale):
     async def reset_user_warnings(client, message):
         chat_id = message.chat.id
 
-        chat_member = await client.get_chat_member(message.chat.id, message.from_user.id)
+        chat_member = await client.get_chat_member(chat_id, message.from_user.id)
 
-        username = message.from_user.username
-        first_name = message.from_user.first_name
-        display_name = "@" + username if username else first_name
         if chat_member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
             return
 
         replied_user = message.reply_to_message.from_user
+        replied_user_member = await client.get_chat_member(chat_id, replied_user.id)
+
+        username = replied_user.username
+        first_name = replied_user.first_name
+        display_name = "@" + username if username else first_name
+
         if not replied_user:
             return
 
         try:
+            warning_counts = get_user_warnings_count(
+                replied_user.id, chat_id=chat_id)
+            
             remove_all_user_warnings(replied_user.id, chat_id)
+            msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p1)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
+            schedule_message_deletion(client, chat_id, msg.id)
+
+        
+            if (warning_counts <=2 or replied_user_member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]):
+                return
+
             permissions = ChatPermissions(
                 can_send_messages=True,
                 can_send_media_messages=True,
@@ -60,8 +73,6 @@ def register_group_handlers(app, locale):
                 can_add_web_page_previews=True
             )
             await client.restrict_chat_member(chat_id, replied_user.id, permissions)
-            msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p1)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
-            schedule_message_deletion(client, chat_id, msg.id)
 
         except Exception as e:
             msg = await message.reply_text(f"Error resetting warnings: {str(e)}")
@@ -89,13 +100,19 @@ def register_group_handlers(app, locale):
 
         message_text = message.text.lower()
 
-        words_in_message = re.findall(r'\b\w+\b', message_text)
-
         found_word = None
 
         for word in filtered_words:
             word_lower = word.lower()
-            if word_lower in words_in_message:
+            if word_lower in message_text:
+                idx = message_text.find(word_lower)
+                if idx > 0 and message_text[idx-1].isalpha():
+                    continue
+                idx += len(word_lower)
+
+                if idx < len(message_text) and message_text[idx].isalpha():
+                    continue
+
                 found_word = word
                 break
 
