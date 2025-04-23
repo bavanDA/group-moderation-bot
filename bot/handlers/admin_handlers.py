@@ -4,8 +4,9 @@ from bot.config import config
 from bot.utils.keyboards import get_admin_keyboard
 from bot.database import add_filtered_word, remove_filtered_word, get_all_filtered_words
 from bot.utils.locale_manager import LocaleKeys
-from bot.database import remove_user_warning
+from bot.database import remove_user_warning, get_user_warnings_count
 from pyrogram.types import ChatPermissions
+from pyrogram.enums import ChatMemberStatus
 
 WAITING_FOR_WORD_TO_ADD = {}
 WAITING_FOR_WORD_TO_REMOVE = {}
@@ -44,16 +45,19 @@ def register_admin_handlers(app, locale):
         chat_id = -1*int(callback_query.matches[0].group(2))
 
         try:
+            warning_counts = get_user_warnings_count(user_id, chat_id=chat_id)
             remove_user_warning(user_id, chat_id=chat_id)
+            user_memeber= await client.get_chat_member(chat_id, user_id)
 
-            permissions = ChatPermissions(
-                can_send_messages=True,
-                can_send_media_messages=True,
-                can_send_other_messages=True,
-                can_add_web_page_previews=True
-            )
-            await client.restrict_chat_member(chat_id, user_id, permissions)
-
+            if(warning_counts>2 and not user_memeber.status in [
+                ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]):
+                permissions = ChatPermissions(
+                    can_send_messages=True,
+                    can_send_media_messages=True,
+                    can_send_other_messages=True,
+                    can_add_web_page_previews=True
+                )
+                await client.restrict_chat_member(chat_id, user_id, permissions)
             await callback_query.message.delete()
 
             await callback_query.answer("Warning removed and user unmuted successfully")
