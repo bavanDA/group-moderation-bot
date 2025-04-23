@@ -1,0 +1,10 @@
+
+services:
+  bot:
+    image: spoiler2400/group-moderation-bot:0.2.0
+    container_name: group-moderation-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - /home/ubuntu/TelegramBot/GroupMod/data:/app/data

@@ -4,6 +4,13 @@ from sqlalchemy.orm import sessionmaker, relationship
 import datetime
 from bot.config import config
 from bot.utils.locale_manager import LocaleKeys
+import os
+
+
+db_dir = os.path.dirname(config.DATABASE_URL.replace('sqlite:///', ''))
+
+if not os.path.exists(db_dir):
+    os.makedirs(db_dir)
 
 Base = declarative_base()
 engine = create_engine(config.DATABASE_URL)
@@ -174,11 +181,11 @@ def add_warning(user_id, word, chat_id, username=None, first_name=None):
         session.close()
 
 
-def remove_user_warning(user_id,chat_id):
+def remove_user_warning(user_id, chat_id):
     session = get_session()
     try:
         latest_warning = session.query(Warning).filter_by(
-            user_id=user_id,chat_id=chat_id).order_by(Warning.timestamp.desc()).first()
+            user_id=user_id, chat_id=chat_id).order_by(Warning.timestamp.desc()).first()
         if latest_warning:
             session.delete(latest_warning)
             session.commit()
@@ -190,10 +197,11 @@ def remove_user_warning(user_id,chat_id):
         session.close()
 
 
-def get_user_warnings_count(user_id,chat_id):
+def get_user_warnings_count(user_id, chat_id):
     session = get_session()
     try:
-        warnings = session.query(Warning).filter_by(user_id=user_id,chat_id=chat_id).all()
+        warnings = session.query(Warning).filter_by(
+            user_id=user_id, chat_id=chat_id).all()
         return len(warnings)
     except Exception as e:
         session.rollback()
