@@ -28,8 +28,6 @@ class LocaleKeys:
 
     warning = "warning"
     warning_msg = "warning_msg"
-    h3_mute = "h3_mute"
-    permanent_mute = "permanent_mute"
     mute_msg = "mute_msg"
     mute_reason = "mute_reason"
 
@@ -69,7 +67,7 @@ class LocaleManager:
         return {}
 
     def get(self, key: str) -> str:
-        key_value = getattr(LocaleKeys, key, None)
+        key_value = getattr(LocaleKeys, key, key)
         if key_value:
             return self.translations.get(key_value, f"[{key_value} not found]")
         return f"[{key} not found]"

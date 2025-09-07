@@ -23,8 +23,6 @@ lang_changed : "Language changed successfully"
 
 warning: "Warning"
 warning_msg: "used a filtered word"
-h3_mute: "for 3 hours" 
-permanent_mute: "for permanently"
 mute_msg: "has been muted.💃"
 mute_reason: "for using filtered words"
 
@@ -47,3 +45,17 @@ reset_msg_p2: "have been reset."
 
 info_msg_p1: "You have"
 info_msg_p2: "warnings"
+
+
+
+
+# penalties action
+
+mute_1h: "for 1 hour"
+mute_3h: "for 3 hours"
+mute_6h: "for 6 hours"
+mute_12h: "for 12 hours"
+mute_1d: "for 1 day"
+mute_3d: "for 3 days"
+mute_1w: "for 1 week"
+mute_permanent: "permanently"

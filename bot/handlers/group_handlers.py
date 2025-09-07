@@ -57,13 +57,12 @@ def register_group_handlers(app, locale):
         try:
             warning_counts = get_user_warnings_count(
                 replied_user.id, chat_id=chat_id)
-            
+
             remove_all_user_warnings(replied_user.id, chat_id)
             msg = await message.reply_text(f"{locale.get(LocaleKeys.reset_msg_p1)} {display_name} {locale.get(LocaleKeys.reset_msg_p2)}")
             schedule_message_deletion(client, chat_id, msg.id)
 
-        
-            if (warning_counts <=2 or replied_user_member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]):
+            if (warning_counts <= 2 or replied_user_member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]):
                 return
 
             permissions = ChatPermissions(
@@ -164,11 +163,10 @@ def register_group_handlers(app, locale):
                     )
                     schedule_message_deletion(client, chat_id, msg.id)
 
-                elif action.startswith("mute"):
+                elif action.startswith("mute_"):
 
-                    duration_text = locale.get(LocaleKeys.h3_mute) if "3h" in action else locale.get(
-                        LocaleKeys.permanent_mute)
-
+                    duration_text = locale.get(action)
+                    mute_seconds = config.MUTE_DURATIONS.get(action, 0)
                     try:
                         mute_permissions = ChatPermissions(
                             can_send_messages=False,
@@ -177,20 +175,19 @@ def register_group_handlers(app, locale):
                             can_add_web_page_previews=False
                         )
 
-                        if (action == "mute_3h"):
-
+                        if ("permanent" in action):
                             await client.restrict_chat_member(
                                 chat_id=chat_id,
                                 user_id=user_id,
-                                permissions=mute_permissions,
-                                until_date=datetime.now() + timedelta(hours=3)
+                                permissions=mute_permissions
                             )
 
                         else:
                             await client.restrict_chat_member(
                                 chat_id=chat_id,
                                 user_id=user_id,
-                                permissions=mute_permissions
+                                permissions=mute_permissions,
+                                until_date=datetime.now() + timedelta(seconds=mute_seconds)
                             )
 
                         msg = await client.send_message(

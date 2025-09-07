@@ -15,18 +15,31 @@ class Config:
                  for admin_id in ADMIN_IDS if admin_id.strip()]
 
     BOT_MSG_TTL = int(os.getenv("BOT_MSG_TTL", 60))
+
     # Penalty settings
     PENALTIES = {
         1: "warning",
         2: "warning",
-        3: "mute_3h",
-        4: "mute_permanent"
+        3: "mute_1h",
+        4: "mute_3h",
+        5: "mute_6h",
+        6: "mute_12h",
+        7: "mute_1d",
+        8: "mute_3d",
+        9: "mute_1w",
+        10: "mute_permanent"
     }
 
     # Mute durations in seconds
     MUTE_DURATIONS = {
+        "mute_1h": 1 * 60 * 60,
         "mute_3h": 3 * 60 * 60,
-        "mute_permanent": 0  # 0 means indefinite
+        "mute_6h": 6 * 60 * 60,
+        "mute_12h": 12 * 60 * 60,
+        "mute_1d": 24 * 60 * 60,
+        "mute_3d": 3 * 24 * 60 * 60,
+        "mute_1w": 7 * 24 * 60 * 60,
+        "mute_permanent": 0  
     }
 
 
