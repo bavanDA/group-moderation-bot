@@ -1,7 +1,6 @@
-
 services:
   bot:
-    image: spoiler2400/group-moderation-bot:0.2.0
+    build: .
     container_name: group-moderation-bot
     restart: unless-stopped
     env_file:
