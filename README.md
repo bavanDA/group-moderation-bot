@@ -6,11 +6,18 @@ A Telegram bot that moderates group chats by filtering inappropriate words, issu
 
 ✅ **Multi-language support** (English & Persian)  
 ✅ **Monitors group messages for filtered words**  
-✅ **Progressive penalty system:**  
+✅ **Progressive penalty system (flexible & configurable):**  
    - **1st offense** → Warning  
    - **2nd offense** → Warning  
-   - **3rd offense** → 3-hour mute  
-   - **4th offense** → Permanent mute  
+   - **3rd offense** → 1-hour mute  
+   - **4th offense** → 3-hour mute  
+   - **5th offense** → 6-hour mute  
+   - **6th offense** → 12-hour mute  
+   - **7th offense** → 1-day mute  
+   - **8th offense** → 3-day mute  
+   - **9th offense** → 1-week mute  
+   - **10th offense** → Permanent mute  
+
 ✅ **Admin private reports** (violations are sent to the admin's private chat)  
 ✅ **Admin panel** in private chat with buttons for:  
    - 🔹 Add words to blacklist  
@@ -53,4 +60,4 @@ docker compose up --build -d
 
 ## License
 
-MIT
+[MIT License](LICENSE)
